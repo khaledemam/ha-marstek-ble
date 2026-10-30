@@ -9,6 +9,7 @@ from homeassistant.const import Platform
 from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.marstek_ble import PLATFORMS
+from custom_components.marstek_ble.config_flow import MarstekBLEOptionsFlow
 from custom_components.marstek_ble.const import CMD_LOCAL_API_STATUS, DOMAIN
 from custom_components.marstek_ble.coordinator import MarstekDataUpdateCoordinator
 from custom_components.marstek_ble.marstek_device import MarstekData, MarstekProtocol
@@ -60,6 +61,22 @@ class LocalAPITests(unittest.IsolatedAsyncioTestCase):
             )
         )
         self.device = self.coordinator.device = FakeDevice()
+
+    async def test_polling_options_preserve_configured_api_port(self):
+        await self.coordinator.async_set_local_api(port=30001)
+        entry = self.coordinator.config_entry
+        entry.options.update({"poll_interval": 1, "medium_poll_interval": 60})
+        flow = MarstekBLEOptionsFlow(entry)
+        result = await flow.async_step_init(
+            {"poll_interval": 5, "medium_poll_interval": 120}
+        )
+        self.assertEqual(
+            result["data"],
+            {"local_api_port": 30001, "poll_interval": 5, "medium_poll_interval": 120},
+        )
+        entry.options = result["data"]
+        await self.coordinator.async_set_local_api(enabled=True)
+        self.assertEqual(self.device.calls, [b"\x01\x31\x75"])
 
     async def test_enable_payload_little_endian(self):
         await self.coordinator.async_set_local_api(enabled=True)
