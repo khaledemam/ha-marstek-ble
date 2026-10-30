@@ -45,6 +45,27 @@ Or:
 
 Repeat for each battery you want to add.
 
+## Local API Bluetooth controls
+
+Under the existing battery device, **Local API** (configuration switch) sends
+an enable/disable command over Bluetooth, and **Local API port** (configuration
+number, box input) sets the UDP port from 1 to 65535 (default 30000). Every
+BLE command includes both the enable bit and UDP port. Changing the port
+preserves the last acknowledged enable setting. If that setting is unknown,
+changing the port only saves a draft value until the switch is explicitly toggled.
+
+**These are assumed/configured values, not independent device telemetry.**
+The switch begins unknown, and only reflects the last acknowledged Bluetooth
+write during the current Home Assistant session. When a write cannot be
+confirmed, the switch becomes unknown again; the hardware may still have applied
+the setting. The port input is a configured command port, not a verified readback.
+
+Changing the UDP port also requires updating any separate Local API client that
+uses the port. Bluetooth must remain reachable for these controls to work.
+An empty `0x28` request is **never** used as a status query, since it was not
+supported on tested Venus E 3.0 firmware 150. No additional polling, recovery
+automation, or battery operating-mode changes are included.
+
 ## Polling
 
 - **Fast (default 1s)**: Runtime info and BMS data; configurable in Options → Fast polling interval (clamped to 1–60s)
