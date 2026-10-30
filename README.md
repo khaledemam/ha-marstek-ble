@@ -14,6 +14,9 @@ Home Assistant integration for Marstek Venus E energy storage systems via Blueto
 - **BLE Proxy support**: Extend range using ESPHome BLE proxies. One proxy can connect multiple batteries.
 - **Configurable polling**: Adjust fast and medium intervals to balance responsiveness and BLE traffic
 - **Local operation**: No cloud connectivity required
+- **Local API controls**: Enable/disable the UDP API and set its port over Bluetooth (1–65535; default 30000).
+  Switch state reflects the last acknowledged command and starts unknown. While unknown, port edits are saved until an explicit on/off command.
+  Update any separate Local API client when changing ports.
 
 ## Installation
 
@@ -44,27 +47,6 @@ Or:
 6. (Optional) Open the integration options to tune the fast/medium polling intervals
 
 Repeat for each battery you want to add.
-
-## Local API Bluetooth controls
-
-Under the existing battery device, **Local API** (configuration switch) sends
-an enable/disable command over Bluetooth, and **Local API port** (configuration
-number, box input) sets the UDP port from 1 to 65535 (default 30000). Every
-BLE command includes both the enable bit and UDP port. Changing the port
-preserves the last acknowledged enable setting. If that setting is unknown,
-changing the port only saves a draft value until the switch is explicitly toggled.
-
-**These are assumed/configured values, not independent device telemetry.**
-The switch begins unknown, and only reflects the last acknowledged Bluetooth
-write during the current Home Assistant session. When a write cannot be
-confirmed, the switch becomes unknown again; the hardware may still have applied
-the setting. The port input is a configured command port, not a verified readback.
-
-Changing the UDP port also requires updating any separate Local API client that
-uses the port. Bluetooth must remain reachable for these controls to work.
-An empty `0x28` request is **never** used as a status query, since it was not
-supported on tested Venus E 3.0 firmware 150. No additional polling, recovery
-automation, or battery operating-mode changes are included.
 
 ## Polling
 
